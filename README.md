@@ -3,6 +3,7 @@
 Use by 
 
 `$ mkfifo /tmp/pipe1` 
+
 `$ </tmp/pipe1 app1 | app2 >/tmp/pipe1`
 
 
