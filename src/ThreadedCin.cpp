@@ -2,6 +2,8 @@
 
 #pragma mark - Lifecycle
 
+//Modified from https://gist.github.com/rc1/97c3e88298a9a9341e6e
+
 ThreadedCin::ThreadedCin () {
     latest = "";
 }
