@@ -14,10 +14,13 @@ public:
     
     string getLatest();
     vector<string> getAllLines();
+    bool isReady();
+    bool isEnd();
     void reset();
 
 private:
     char buffer[ 8192 ];
     string latest;
     vector<string> lines;
+    bool ready, end;
 };

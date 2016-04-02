@@ -27,9 +27,38 @@ void ThreadedCin::threadedFunction () {
         
         lock();
         latest = string( buffer );
+        
+        if(latest == "READY"){
+            ready = true;
+        } else{
+            ready = false;
+        }
+        
+        if(latest == "END"){
+            end = true;
+        } else{
+            end = false;
+        }
+        
         lines.push_back(latest);
         
         unlock();
+    }
+}
+
+bool ThreadedCin::isReady(){
+    if (ready) {
+        return true;
+    } else{
+        return false;
+    }
+}
+
+bool ThreadedCin::isEnd(){
+    if (end) {
+        return true;
+    } else{
+        return false;
     }
 }
 
@@ -52,5 +81,6 @@ vector<string> ThreadedCin::getAllLines(){
 void ThreadedCin::reset () {
     lock();
     latest = "";
+    lines.clear();
     unlock();
 }

@@ -21,8 +21,18 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
-		
+        ofPolyline parseData(vector<string> text);
+    
         ThreadedCin tcin;
         string latest;
         vector<string> allLines;
+//        vector<ofVec3f> pointData;
+//        ofVec3f point;
+    
+        ofPolyline polyLine;
+        vector<ofPolyline> polyLines;
+        bool needsUpdate;
+        int allLinesSize;
+        bool rdy, eos;
+        vector<ofPolyline> lineList;
 };
