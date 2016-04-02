@@ -1,0 +1,108 @@
+task = prediction
+
+network:
+task = prediction
+11VerticalNet
+------------------------------
+5 layers:
+10InputLayer "input" 1D (+) size 3
+(R) 11Lstm1dLayerI4TanhS0_8LogisticE "hidden_0_0" 1D (+) inputSize 1600 outputSize 400 source "input" 1200 peeps
+(R) 11Lstm1dLayerI4TanhS0_8LogisticE "hidden_1_0" 1D (+) inputSize 1600 outputSize 400 source "hidden_0_0" 1200 peeps
+(R) 11Lstm1dLayerI4TanhS0_8LogisticE "hidden_2_0" 1D (+) inputSize 1600 outputSize 400 source "hidden_1_0" 1200 peeps
+20MixtureSamplingLayer "output" 1D (+) size 121 source "hidden_2_0"
+------------------------------
+20 connections:
+"bias_to_output" (121 wts)
+"hidden_2_0_to_output" (48400 wts)
+"hidden_0_0_to_output" (48400 wts)
+"hidden_1_0_to_output" (48400 wts)
+"bias_to_charwindow_0" (30 wts)
+"hidden_0_0_to_charwindow_0" (12000 wts)
+"bias_to_hidden_0_0" (1600 wts)
+"hidden_0_0_to_hidden_0_0_delay_-1" (640000 wts)
+"input_to_hidden_0_0" (4800 wts)
+"charwindow_0_to_hidden_0_0_delay_-1" (92800 wts)
+"bias_to_hidden_1_0" (1600 wts)
+"hidden_1_0_to_hidden_1_0_delay_-1" (640000 wts)
+"hidden_0_0_to_hidden_1_0" (640000 wts)
+"input_to_hidden_1_0" (4800 wts)
+"charwindow_0_to_hidden_1_0" (92800 wts)
+"bias_to_hidden_2_0" (1600 wts)
+"hidden_2_0_to_hidden_2_0_delay_-1" (640000 wts)
+"hidden_1_0_to_hidden_2_0" (640000 wts)
+"input_to_hidden_2_0" (4800 wts)
+"charwindow_0_to_hidden_2_0" (92800 wts)
+------------------------------
+bidirectional = false
+symmetry = false
+3658551 weights
+
+setting random seed to 454736639
+
+loading dynamic data from /Users/aferriss/Dropbox/synth1d@2016.01.08-12.01.48.911793.best_loss.save
+epoch = 23
+
+loading sequences from 0 to 10748
+First Split = cat
+2nd Split = 0.1
+3rd Split = 6789
+sentence:cat:0.1:6789
+sample bias:0.1
+We set the prime ID
+primed sentence:it. The bland, self-assured cat
+generating samples from network
+Sample 0.0683205 0.458156 1
+Sample 9.52942 -2.73843 1
+Sample -0.521667 0.0959433 0
+Sample -0.686392 0.124931 0
+Sample -0.550035 0.385739 0
+Sample -0.669298 0.401025 0
+Sample -0.454681 0.564019 0
+Sample -0.3849 0.472354 0
+Sample -0.13734 0.313058 0
+Sample 0.119203 0.277379 0
+Sample 0.309568 0.247894 0
+Sample 0.482793 -0.0277005 0
+Sample 0.650461 -0.0272285 0
+Sample 0.493052 -0.297064 1
+Sample 2.81902 -2.17904 1
+Sample -0.369578 -0.171868 0
+Sample -0.355774 -0.259864 0
+Sample -0.287593 -0.222261 0
+Sample -0.382515 -0.169429 0
+Sample -0.444938 0.0172231 0
+Sample -0.712827 0.137746 0
+Sample -0.685927 0.350372 0
+Sample -0.573255 0.454819 0
+Sample -0.314938 0.3903 0
+Sample -0.267962 0.233877 0
+Sample -0.164116 0.0592554 0
+Sample 0.245762 0.10976 0
+Sample 0.200372 -0.104585 0
+Sample 0.224115 -0.14036 0
+Sample 0.20694 -0.25431 0
+Sample -0.0141206 -0.418685 0
+Sample 0.016679 -0.387628 0
+Sample -0.15446 -0.238365 0
+Sample -0.242264 -0.0313368 0
+Sample -0.165003 0.108412 0
+Sample -0.201926 0.413607 0
+Sample -0.15388 0.640223 0
+Sample -0.0758451 0.486977 0
+Sample 0.154249 0.366513 0
+Sample 0.243756 0.126323 0
+Sample 0.402619 -0.0233357 0
+Sample 0.320031 -0.338146 0
+Sample 0.268506 -0.537911 1
+Sample 0.256872 -5.62413 1
+Sample -0.18313 0.458744 0
+Sample -0.318017 0.751406 0
+Sample -0.143023 0.975107 0
+Sample -0.0238636 0.992291 0
+Sample -0.303802 0.838147 0
+Sample -0.0249723 0.76359 0
+Sample -0.126623 0.572914 0
+Sample -0.0729376 0.378347 0
+Sample -0.0730461 0.149552 0
+Sample -0.107132 0.0107311 0
+End of sentence
