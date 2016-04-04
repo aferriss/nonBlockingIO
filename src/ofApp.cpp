@@ -5,42 +5,56 @@ void ofApp::setup(){
     w = 1024;
     h = 1024;
     
+    ofSetWindowShape(w, h);
+    
     tcin.startThread();
     
     consoleFbo.allocate(w, h, GL_RGB);
     consoleFbo.begin();
         ofClear(0);
     consoleFbo.end();
+    
     vvFbo.allocate(w, h, GL_RGB, 8);
     
-    ofBuffer buffer = ofBufferFromFile("cat3.txt");
-    string text = buffer.getText();
-    vector<string> myLines = ofSplitString(text, "\n");
-
-    polyLines = parseData(myLines, false, "cat");
-    vvLines.push_back(polyLines);
-    needsUpdate = false;
-    allLinesSize = 0;
-    rdy = false;
-    eos = false;
+    vvFbo.begin();
+        ofClear(255);
+    vvFbo.end();
     
     gui = new ofxDatGui( ofxDatGuiAnchor::TOP_LEFT );
-    guiPhrase = gui->addTextInput("Phrase", "cat");
-    guiBias = gui->addSlider("Bias", -1, 10);
-    guiBias->setValue(0.1);
-    guiId = gui->addSlider("ID", 0, 9999);
+    guiPhrase = gui->addTextInput("Phrase", "iiiii ");
+    guiBias = gui->addSlider("Bias", -1, 10, -1);
+//    guiBias->setValue(0.1);
+    guiId = gui->addSlider("ID", -1, 9999, -1);
     guiId->setPrecision(0);
-    guiId->setValue(0);
-    guiConnections = gui->addToggle("Show Connections", "true");
+//    guiId->setValue(0);
+    guiConnections = gui->addToggle("Show Connections", "false");
     guiConsole = gui->addToggle("Show Console", "false");
     guiAllLines = gui->addToggle("Show All Lines", "false");
+    guiMaxW = gui->addSlider("Max Width", 1,200,64);
+    guiMaxH = gui->addSlider("Max Height", 1, 200,32);
+    guiMaxW->setPrecision(0);
+    guiMaxH->setPrecision(0);
     
     showGui = true;
     useGuiVals = true;
     
     ofxDatGuiLog::quiet();
     
+//    ofBuffer buffer = ofBufferFromFile("cat3.txt");
+//    string text = buffer.getText();
+//    vector<string> myLines = ofSplitString(text, "\n");
+//
+//    polyLines = parseData(myLines, false, "cat");
+//    vvLines.push_back(polyLines);
     
+    needsUpdate = false;
+    allLinesSize = 0;
+    rdy = false;
+    eos = false;
+    
+
+    
+    biasInc = -1;
 }
 //--------------------------------------------------------------
 vector<ofPolyline> ofApp::parseData(vector<string> myLines, bool showConnections, string phr){
@@ -53,7 +67,7 @@ vector<ofPolyline> ofApp::parseData(vector<string> myLines, bool showConnections
     ofFile file("textFiles/"+phr+"_"+ofGetTimestampString()+".txt", ofFile::WriteOnly);
     for(int i = 3; i<myLines.size(); i++){
         vector<string> line  = ofSplitString(myLines[i], " ");
-        if(line[0] == "Sample"){            
+        if(line[0] == "Sample"){
             point.x = (ofToFloat(line[1])* devXY[0] + muXY[0]) + tempPoint.x;
             point.y = (ofToFloat(line[2])* devXY[1] + muXY[1]) + tempPoint.y;
             point.z = ofToInt(line[3]);
@@ -86,8 +100,8 @@ vector<ofPolyline> ofApp::parseData(vector<string> myLines, bool showConnections
     }
     
     ofPolyline poly;
-    int maxW = 100;
-    int maxH = 50;
+    int maxW = guiMaxW->getValue();
+    int maxH = guiMaxH->getValue();
     
     for(int i =0; i<pointData.size(); i++){
             poly.lineTo(ofMap(pointData[i].x, minX, maxX, 0,maxW), ofMap(pointData[i].y, minY, maxY, 0,maxH));
@@ -106,7 +120,9 @@ vector<ofPolyline> ofApp::parseData(vector<string> myLines, bool showConnections
             ll[tempIndex].curveTo(mapX, mapY);
             
             if(pointData[i].z == 1 && tempIndex < ll.size()){
+                ll[tempIndex].end();
                 tempIndex++;
+                
             }
         }
     }else if(showConnections){
@@ -160,14 +176,12 @@ void ofApp::draw(){
         }
     ofPopMatrix();
     
-
-    
     
     //get new text and send when ready
     if(rdy){
         if(eos){
             allLines = tcin.getAllLines();
-            
+//            guiBias->setValue(biasInc);
             if(allLines.size()>0){
                 vvLines.push_back(polyLines);
 //                polyLines.clear();
@@ -181,9 +195,11 @@ void ofApp::draw(){
                 string hand = ofToString((int)ofRandom(9999));
                 cout<<phrase+":"+bias+":"+hand<<endl;
             } else if(useGuiVals){
-                if(guiPhrase->getText() != ""){
-                    cout<<guiPhrase->getText()+":"+ofToString(guiBias->getValue())+":"+ofToString(guiId->getValue())<<endl;
+                if(guiPhrase->getText() == ""){
+                    guiPhrase->setText(" ");
                 }
+                cout<<guiPhrase->getText()+":"+ofToString(biasInc)+":"+ofToString(guiId->getValue())<<endl;
+                biasInc += 0.005;
             }
         }
     }
@@ -192,32 +208,38 @@ void ofApp::draw(){
         consoleFbo.draw(0,0);
     }
     
-    vvFbo.begin();
-    
-        ofClear(255);
-        ofSetColor(0);
-    
-        int xSpace = 0;
-        int ySpace = 0;
-            for(int i = 0; i<vvLines.size(); i++){
-                ofPushMatrix();
-                
-                ofTranslate(xSpace, ySpace);
-                for(int j = 0; j<vvLines[i].size(); j++){
+    if(allDims.size()>0){
+        vvFbo.begin();
+        
+            ofClear(255);
+            ofSetColor(0);
+        
+            int xSpace = 0;
+            int ySpace = 0;
+                for(int i = 0; i<vvLines.size(); i++){
+                    ofPushMatrix();
                     
-                    vvLines[i][j].draw();
+                    ofTranslate(xSpace, ySpace);
+                    for(int j = 0; j<vvLines[i].size(); j++){
+                        vvLines[i][j].draw();
+                    }
+                    
+                    xSpace += allDims[i].width;
+                    
+                    if(xSpace > w){
+                        ySpace+= allDims[i].height;
+                        
+                        xSpace = 0;
+                    }
+                    ofPopMatrix();
                 }
-                
-                xSpace += allDims[i].width;
-                if(xSpace > w){
-                    ySpace+= allDims[i].height;
-                    xSpace = 0;
-                }
-                ofPopMatrix();
-            }
+        
+        ofSetColor(0);
+        ofDrawBitmapString(ofToString(biasInc), w/2,h/2);
+        
         ofSetColor(255);
-    
-    vvFbo.end();
+        vvFbo.end();
+    }
     
     if(guiAllLines->getEnabled()){
         vvFbo.draw(0,0);
@@ -250,6 +272,13 @@ void ofApp::keyPressed(int key){
     if(key == 'h'){
         showGui = !showGui;
         gui->setVisible(showGui);
+    }
+    
+    if(key == 'q'){
+        vvLines.clear();
+        vvFbo.begin();
+            ofClear(255);
+        vvFbo.end();
     }
     
     

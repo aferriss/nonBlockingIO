@@ -224,7 +224,7 @@ int main(int argc, char *argv[]) {
 
       primeId = atoi(spl[2].c_str());
 
-      // if (primeId) {
+       if (primeId != -1) {
         std::unique_ptr<DataSequence> ps;
         ps.reset(new DataSequence((*data)[primeId]));
         copy(ps->inputs.data, s.inputs.data);
@@ -232,7 +232,7 @@ int main(int argc, char *argv[]) {
         // out << "primed sentence:" << s.targetSentence << endl;
         net->set_prime_length(ps->num_timesteps() - 1);
         i = ps->num_timesteps() - 1;
-      // }
+       }
 
       // out << "generating samples from network" << endl;
 

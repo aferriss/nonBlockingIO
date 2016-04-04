@@ -58,4 +58,6 @@ class ofApp : public ofBaseApp{
     
         ofFbo consoleFbo, vvFbo;
         vector< vector<ofPolyline> > vvLines;
+    
+        float biasInc;
 };
