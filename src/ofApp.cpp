@@ -361,7 +361,7 @@ void ofApp::keyPressed(int key){
     }
     
     if(key == 'q'){
-        linesets[linesets.size()-1] = resizeLine(linesets[linesets.size()-1], 64, 32);
+        linesets[linesets.size()-1] = resizeLine(linesets[linesets.size()-1], guiMaxW->getValue(), guiMaxH->getValue());
     }
     
     
