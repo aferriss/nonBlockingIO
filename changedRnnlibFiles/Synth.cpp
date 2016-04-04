@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
   string datafile = dataFiles[dataFileNum];
   DataHeader header(datafile, task, 1);
 
-  PRINT(task, out);
+  // PRINT(task, out);
   std::unique_ptr<DataSequence> testSeq;
   if (gradCheck) {
     NetcdfDataset *data = new NetcdfDataset(datafile, task, 0);
@@ -137,34 +137,34 @@ int main(int argc, char *argv[]) {
   net->build();
 
   // print out network
-  out << endl << "network:" << endl;
-  PRINT(task, out);
-  out << *net;
-  out << numWeights << " weights" << endl << endl;
+  // out << endl << "network:" << endl;
+  // PRINT(task, out);
+  // out << *net;
+  // out << numWeights << " weights" << endl << endl;
 
   // create trainer
-  Trainer trainer(out, net.get(), conf);
-  out << "setting random seed to "
-      << Random::set_seed(conf.get<unsigned long int>("randSeed", 0)) << endl
-      << endl;
+  // Trainer trainer(out, net.get(), conf);
+  // out << "setting random seed to "
+  //     << Random::set_seed(conf.get<unsigned long int>("randSeed", 0)) << endl
+  //     << endl;
 
-  if (gradCheck) {
-    real_t initWeightRange = conf.get<real_t>("initWeightRange", 0.1);
-    int numRandWts = wc.randomise(initWeightRange);
+  // if (gradCheck) {
+  //   real_t initWeightRange = conf.get<real_t>("initWeightRange", 0.1);
+  //   int numRandWts = wc.randomise(initWeightRange);
 
-    check(sizeof(real_t) == sizeof(double),
-          "real_t must be double when checking gradient");
-    out << "data header:" << endl << header << endl;
-    out << *testSeq;
-    testSeq->targetSentence = "dummy";
-    prt_line(out);
-    GradientCheck(out, net.get(), *testSeq, conf.get<int>("sigFigs", 6),
-                  conf.get<real_t>("pert", 1e-5),
-                  conf.get<bool>("verbose", false),
-                  conf.get<bool>("breakOnError", true));
-    conf.warn_unused(out);
-    return 0;
-  }
+  //   check(sizeof(real_t) == sizeof(double),
+  //         "real_t must be double when checking gradient");
+  //   out << "data header:" << endl << header << endl;
+  //   out << *testSeq;
+  //   testSeq->targetSentence = "dummy";
+  //   prt_line(out);
+  //   GradientCheck(out, net.get(), *testSeq, conf.get<int>("sigFigs", 6),
+  //                 conf.get<real_t>("pert", 1e-5),
+  //                 conf.get<bool>("verbose", false),
+  //                 conf.get<bool>("breakOnError", true));
+  //   conf.warn_unused(out);
+  //   return 0;
+  // }
 
   CHECK_STRICT(conf.get<bool>("loadWeights", false),
                "configure with loadWeights=true");
@@ -177,9 +177,9 @@ int main(int argc, char *argv[]) {
   }
 
   if (conf.get<bool>("loadWeights", false)) {
-    out << "loading dynamic data from " << conf.filename << endl;
+    // out << "loading dynamic data from " << conf.filename << endl;
     DataExportHandler::instance().load(conf, out);
-    out << "epoch = " << trainer.epoch << endl << endl;
+    // out << "epoch = " << trainer.epoch << endl << endl;
     
 
     NetcdfDataset *data = new NetcdfDataset(datafile, task);
@@ -190,9 +190,9 @@ int main(int argc, char *argv[]) {
       std::getline(std::cin, sentence);
 
       vector<string> spl = split(sentence, ':');
-      cout<<"First Split = "+spl[0]<<endl;
-      cout<<"2nd Split = "+spl[1]<<endl;
-      cout<<"3rd Split = "+spl[2]<<endl;
+      // cout<<"First Split = "+spl[0]<<endl;
+      // cout<<"2nd Split = "+spl[1]<<endl;
+      // cout<<"3rd Split = "+spl[2]<<endl;
 
       if (sentence.find("conf_conf_conf:") == 0) {
         std::stringstream cs(sentence.substr(sentence.find(":") + 1));
@@ -203,17 +203,17 @@ int main(int argc, char *argv[]) {
         primeId = primeIdSeqIndex[primeId];
         sampleBias = bound(sampleBias, (real_t)0, (real_t)10);
         net->set_sample_bias(5);
-        cout<<"the conf conf conf"<<endl;
+        // cout<<"the conf conf conf"<<endl;
         continue;
       }
       if (charWindowSizes.size()) {
         CHECK_STRICT(!sentence.empty(), "add --sentence=<what>");
       }
 
-      out << "sentence:" << sentence << endl;
+      // out << "sentence:" << sentence << endl;
       net->set_sample_bias(atof(spl[1].c_str()));
       DataSequence s(3);
-      const int MAX_SAMPLES = 10000;
+      const int MAX_SAMPLES = 30000;
       vector<real_t> shape(1, MAX_SAMPLES);
       s.inputs.reshape(shape, 0);
       s.inputs.data[0] = -0.1968395;
@@ -224,18 +224,17 @@ int main(int argc, char *argv[]) {
 
       primeId = atoi(spl[2].c_str());
 
-      if (primeId) {
-        cout<<"We set the prime ID"<<endl;
+      // if (primeId) {
         std::unique_ptr<DataSequence> ps;
         ps.reset(new DataSequence((*data)[primeId]));
         copy(ps->inputs.data, s.inputs.data);
         s.targetSentence = ps->targetSentence + " " + spl[0];
-        out << "primed sentence:" << s.targetSentence << endl;
+        // out << "primed sentence:" << s.targetSentence << endl;
         net->set_prime_length(ps->num_timesteps() - 1);
         i = ps->num_timesteps() - 1;
-      }
+      // }
 
-      out << "generating samples from network" << endl;
+      // out << "generating samples from network" << endl;
 
       net->feed_forward(s);
       for (; !net->end_of_target_string(i) && i < MAX_SAMPLES; ++i) {

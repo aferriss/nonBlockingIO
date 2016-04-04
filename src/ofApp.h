@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "ThreadedCin.h"
+#include "ofxDatGui.h"
 
 class ofApp : public ofBaseApp{
 
@@ -21,7 +22,10 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
-        ofPolyline parseData(vector<string> text);
+        vector<ofPolyline> parseData(vector<string> text, bool showConnections, string phr);
+    
+    
+        int w, h;
     
         ThreadedCin tcin;
         string latest;
@@ -35,4 +39,23 @@ class ofApp : public ofBaseApp{
         int allLinesSize;
         bool rdy, eos;
         vector<ofPolyline> lineList;
+        vector<ofRectangle> allDims;
+        ofxDatGui* gui;
+        ofxDatGuiTextInput* guiPhrase;
+        ofxDatGuiSlider* guiBias;
+        ofxDatGuiSlider* guiId;
+        ofxDatGuiToggle* guiConnections;
+        ofxDatGuiToggle* guiConsole;
+        ofxDatGuiToggle* guiAllLines;
+        ofxDatGuiSlider* guiMaxW;
+        ofxDatGuiSlider* guiMaxH;
+    
+        bool showGui;
+        bool useGuiVals;
+        bool showConsole();
+    
+        ofRectangle dims;
+    
+        ofFbo consoleFbo, vvFbo;
+        vector< vector<ofPolyline> > vvLines;
 };

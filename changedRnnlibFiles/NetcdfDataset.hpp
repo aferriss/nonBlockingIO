@@ -334,7 +334,7 @@ struct NetcdfDataset {
     return offset;
   }
   void load_sequences(int first, int last) {
-    COUT << "loading sequences from " << first << " to " << last << endl;
+    // COUT << "loading sequences from " << first << " to " << last << endl;
     pair<int, int> offsets = get_offset(first);
     LOOP(int i, span(first, last)) {
       check(i >= 0 && i < inputSeqDims.shape[0],
