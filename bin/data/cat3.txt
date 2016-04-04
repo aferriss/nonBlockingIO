@@ -1,56 +1,5 @@
-task = prediction
-
-network:
-task = prediction
-11VerticalNet
-------------------------------
-5 layers:
-10InputLayer "input" 1D (+) size 3
-(R) 11Lstm1dLayerI4TanhS0_8LogisticE "hidden_0_0" 1D (+) inputSize 1600 outputSize 400 source "input" 1200 peeps
-(R) 11Lstm1dLayerI4TanhS0_8LogisticE "hidden_1_0" 1D (+) inputSize 1600 outputSize 400 source "hidden_0_0" 1200 peeps
-(R) 11Lstm1dLayerI4TanhS0_8LogisticE "hidden_2_0" 1D (+) inputSize 1600 outputSize 400 source "hidden_1_0" 1200 peeps
-20MixtureSamplingLayer "output" 1D (+) size 121 source "hidden_2_0"
-------------------------------
-20 connections:
-"bias_to_output" (121 wts)
-"hidden_2_0_to_output" (48400 wts)
-"hidden_0_0_to_output" (48400 wts)
-"hidden_1_0_to_output" (48400 wts)
-"bias_to_charwindow_0" (30 wts)
-"hidden_0_0_to_charwindow_0" (12000 wts)
-"bias_to_hidden_0_0" (1600 wts)
-"hidden_0_0_to_hidden_0_0_delay_-1" (640000 wts)
-"input_to_hidden_0_0" (4800 wts)
-"charwindow_0_to_hidden_0_0_delay_-1" (92800 wts)
-"bias_to_hidden_1_0" (1600 wts)
-"hidden_1_0_to_hidden_1_0_delay_-1" (640000 wts)
-"hidden_0_0_to_hidden_1_0" (640000 wts)
-"input_to_hidden_1_0" (4800 wts)
-"charwindow_0_to_hidden_1_0" (92800 wts)
-"bias_to_hidden_2_0" (1600 wts)
-"hidden_2_0_to_hidden_2_0_delay_-1" (640000 wts)
-"hidden_1_0_to_hidden_2_0" (640000 wts)
-"input_to_hidden_2_0" (4800 wts)
-"charwindow_0_to_hidden_2_0" (92800 wts)
-------------------------------
-bidirectional = false
-symmetry = false
-3658551 weights
-
-setting random seed to 454736639
-
-loading dynamic data from /Users/aferriss/Dropbox/synth1d@2016.01.08-12.01.48.911793.best_loss.save
-epoch = 23
-
-loading sequences from 0 to 10748
-First Split = cat
-2nd Split = 0.1
-3rd Split = 6789
-sentence:cat:0.1:6789
-sample bias:0.1
 We set the prime ID
 primed sentence:it. The bland, self-assured cat
-generating samples from network
 Sample 0.0683205 0.458156 1
 Sample 9.52942 -2.73843 1
 Sample -0.521667 0.0959433 0

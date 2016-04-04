@@ -24,7 +24,15 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
         vector<ofPolyline> parseData(vector<string> text, bool showConnections, string phr);
     
+        struct Lineset {
+            ofPolyline contLine;
+            ofVec2f dims;
+            vector<ofPolyline> brokenLine;
+            ofVec4f edges;
+        };
     
+        Lineset resizeLine(Lineset ls, int maxW, int maxH);
+        vector<Lineset> linesets;
         int w, h;
     
         ThreadedCin tcin;
