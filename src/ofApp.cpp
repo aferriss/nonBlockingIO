@@ -243,6 +243,11 @@ void ofApp::update(){
         rdy = tcin.isReady();
     }
     
+    if(rdy && !started){
+        cout<<"iiiii :"+ofToString(biasInc)+":-1"<<endl;
+        started = true;
+    }
+    
     eos = tcin.isEnd();
     
     if(started){
