@@ -344,7 +344,7 @@ void ofApp::draw(){
                     cout<<"iiiii :"+ofToString(biasInc)+":-1"<<endl;
                 }
                 
-                if(biasInc < 0){
+                if(biasInc < 1){
                 biasInc += 0.0000372;
                 } else{
                     biasInc += 0.00009;
