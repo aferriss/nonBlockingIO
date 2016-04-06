@@ -31,7 +31,7 @@ class ofApp : public ofBaseApp{
             ofVec4f edges;
         };
     
-        Lineset resizeLine(Lineset ls, int maxW, int maxH);
+        Lineset resizeLine(Lineset ls, int maxW);
         vector<Lineset> linesets;
         int w, h;
     
@@ -56,7 +56,7 @@ class ofApp : public ofBaseApp{
         ofxDatGuiToggle* guiConsole;
         ofxDatGuiToggle* guiAllLines;
         ofxDatGuiSlider* guiMaxW;
-        ofxDatGuiSlider* guiMaxH;
+        void onSliderEvent(ofxDatGuiSliderEvent e);
     
         bool showGui;
         bool useGuiVals;
@@ -68,4 +68,6 @@ class ofApp : public ofBaseApp{
         vector< vector<ofPolyline> > vvLines;
     
         float biasInc;
+        bool started;
+        int waitCounter;
 };

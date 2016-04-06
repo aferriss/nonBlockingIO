@@ -62,6 +62,14 @@ bool ThreadedCin::isEnd(){
     }
 }
 
+bool ThreadedCin::pingMain(){
+    if(ping){
+        return true;
+    } else{
+        return false;
+    }
+}
+
 string ThreadedCin::getLatest () {
     string result;
     lock();

@@ -23,42 +23,58 @@ void ofApp::setup(){
     gui = new ofxDatGui( ofxDatGuiAnchor::TOP_LEFT );
     guiPhrase = gui->addTextInput("Phrase", "iiiii ");
     guiBias = gui->addSlider("Bias", -1, 10, -1);
-//    guiBias->setValue(0.1);
+    guiBias->setPrecision(8);
+    
     guiId = gui->addSlider("ID", -1, 9999, -1);
     guiId->setPrecision(0);
-//    guiId->setValue(0);
     guiConnections = gui->addToggle("Show Connections", "false");
     guiConsole = gui->addToggle("Show Console", "false");
     guiAllLines = gui->addToggle("Show All Lines", "false");
-    guiMaxW = gui->addSlider("Max Width", 1,200,64);
-    guiMaxH = gui->addSlider("Max Height", 1, 200,32);
+    guiMaxW = gui->addSlider("Max Width", 1,200,18);
     guiMaxW->setPrecision(0);
-    guiMaxH->setPrecision(0);
-    
+    gui->onSliderEvent(this, &ofApp::onSliderEvent);
     showGui = true;
     useGuiVals = true;
-    
     ofxDatGuiLog::quiet();
     
     ofBuffer buffer = ofBufferFromFile("cat3.txt");
     string text = buffer.getText();
     vector<string> myLines = ofSplitString(text, "\n");
 
+    ofBuffer biasBuffer = ofBufferFromFile("bias.txt");
+    string biasText = biasBuffer.getText();
+    vector<string> biasLines = ofSplitString(biasText,"\n");
+    
+    biasInc = ofToFloat(biasLines[0]);
+    
     polyLines = parseData(myLines, false, "cat");
-    vvLines.push_back(polyLines);
-    vvLines.push_back(polyLines);
+//    vvLines.push_back(polyLines);
+//    vvLines.push_back(polyLines);
     
     needsUpdate = false;
     allLinesSize = 0;
     rdy = false;
     eos = false;
     
+    
 
     
-    biasInc = -1;
+    
     
     ofSetBackgroundAuto(true);
     ofSetBackgroundColor(120);
+    
+    started = false;
+    
+    waitCounter = 0;
+}
+//--------------------------------------------------------------
+void ofApp::onSliderEvent(ofxDatGuiSliderEvent e){
+    if(e.target->is("Max Width")){
+        for (int i = 0; i<linesets.size(); i++){
+            linesets[i] = resizeLine(linesets[i], e.value);
+        }
+    }
 }
 //--------------------------------------------------------------
 vector<ofPolyline> ofApp::parseData(vector<string> myLines, bool showConnections, string phr){
@@ -69,7 +85,7 @@ vector<ofPolyline> ofApp::parseData(vector<string> myLines, bool showConnections
     vector<ofVec3f> pointData;
     ofVec3f point;
     int tempIndex = 0;
-    ofFile file("textFiles/"+phr+"_"+ofGetTimestampString()+".txt", ofFile::WriteOnly);
+    ofFile file("textFiles/"+phr+"_"+ofToString(biasInc)+"_"+ofGetTimestampString()+".txt", ofFile::WriteOnly);
     
     //start at three to get rid of first couple bad data points
     for(int i = 3; i<myLines.size(); i++){
@@ -90,6 +106,9 @@ vector<ofPolyline> ofApp::parseData(vector<string> myLines, bool showConnections
     }
     file.close();
     
+    ofFile biasFile("bias.txt", ofFile::WriteOnly);
+    biasFile << ofToString(biasInc)<<endl;
+    biasFile.close();
     
     //get bounds
     float minX = pointData[0].x;
@@ -104,21 +123,23 @@ vector<ofPolyline> ofApp::parseData(vector<string> myLines, bool showConnections
         maxY = max(maxY, pointData[i].y);
     }
     
-    
+    int masterMin = min(minX, minY);
+    int masterMax = max(maxX, maxY);
     
     ofPolyline poly;
     int maxW = guiMaxW->getValue();
-    int maxH = guiMaxH->getValue();
+    int maxH = guiMaxW->getValue();
     int xDistFromZero = maxX - minX;
     int yDistFromZero = maxY - minY;
+    int distFromZero = masterMax - masterMin;
     
     for(int i =0; i<pointData.size(); i++){
-        poly.curveTo(ofMap(pointData[i].x, minX, maxX, 0,xDistFromZero), ofMap(pointData[i].y, minY, maxY, 0,xDistFromZero));
+        poly.curveTo(ofMap(pointData[i].x, minX, maxX, 0,xDistFromZero), ofMap(pointData[i].y, minY, maxY, 0,yDistFromZero));
 //        poly.lineTo(pointData[i].x, pointData[i].y);
     }
     
     Lineset l;
-    l.edges = ofVec4f(0, 0, xDistFromZero, yDistFromZero);
+    
     l.contLine = poly;
     l.dims = ofVec2f(poly.getBoundingBox().width, poly.getBoundingBox().height);
     
@@ -130,10 +151,11 @@ vector<ofPolyline> ofApp::parseData(vector<string> myLines, bool showConnections
     
     for (int i = 0; i<pointData.size(); i++) {
         float mapX = ofMap(pointData[i].x, minX, maxX, 0,xDistFromZero);
-        float mapY = ofMap(pointData[i].y, minY, maxY, 0,xDistFromZero);
+        float mapY = ofMap(pointData[i].y, minY, maxY, 0,yDistFromZero);
 //        float mapX = pointData[i].x;
 //        float mapY = pointData[i].y;
         
+//        mapY += yDistFromZero;
         
         ll[tempIndex].curveTo(mapX, mapY);
         
@@ -142,6 +164,33 @@ vector<ofPolyline> ofApp::parseData(vector<string> myLines, bool showConnections
             tempIndex++;
         }
     }
+    
+        float minBrokenX = 10000000.0;
+        float minBrokenY = 10000000.0;
+        float maxBrokenX = -10000000.0;
+        float maxBrokenY = -10000000.0;
+    
+        for(int i = 0; i<ll.size(); i++){
+            for(int j = 0; j<ll[i].size(); j++){
+                minBrokenX = min(minBrokenX, ll[i][j].x);
+                minBrokenY = min(minBrokenY, ll[i][j].y);
+                maxBrokenX = max(maxBrokenX, ll[i][j].x);
+                maxBrokenY = max(maxBrokenY, ll[i][j].y);
+            }
+        }
+    
+    for(int i = 0; i<ll.size(); i++){
+        for(int j = 0; j<ll[i].size(); j++){
+            float mX = ofMap(ll[i][j].x, minBrokenX, maxBrokenX, 0, maxBrokenX - minBrokenX);
+            float mY = ofMap(ll[i][j].y, minBrokenY, maxBrokenY, 0, maxBrokenY - minBrokenY);
+            
+            ll[i][j].x = mX;
+            ll[i][j].y = mY;
+        }
+    }
+    
+    l.edges = ofVec4f(0, 0, maxBrokenX - minBrokenX, maxBrokenY - minBrokenY);
+    
     l.brokenLine = ll;
         
 //    }else if(showConnections){
@@ -151,6 +200,7 @@ vector<ofPolyline> ofApp::parseData(vector<string> myLines, bool showConnections
     
     dims = poly.getBoundingBox();
     allDims.push_back(dims);
+    l = resizeLine(l, guiMaxW->getValue());
     linesets.push_back(l);
     
     return ll;
@@ -158,28 +208,31 @@ vector<ofPolyline> ofApp::parseData(vector<string> myLines, bool showConnections
     
 }
 //--------------------------------------------------------------
-ofApp::Lineset ofApp::resizeLine(Lineset ls, int maxW, int maxH){
+ofApp::Lineset ofApp::resizeLine(Lineset ls, int maxW){
     vector<ofPoint> verts = ls.contLine.getVertices();
     
     for(int i = 0; i<verts.size(); i++){
         float newX = ofMap(verts[i].x, 0,ls.edges.z, 0, maxW);
-        float newY = ofMap(verts[i].y, 0,ls.edges.w, 0, maxH);
+        float newY = ofMap(verts[i].y, 0,ls.edges.z, 0, maxW);
 //        verts[i] = ofPoint(newX, newY);
         ls.contLine[i] = ofPoint(newX, newY);
     }
     
+    float newMaxH = -1000000;
     for(int i = 0; i<ls.brokenLine.size(); i++){
         vector<ofPoint> segVerts = ls.brokenLine[i].getVertices();
         
         for(int j = 0; j<segVerts.size(); j++){
-            float newX = ofMap(segVerts[i].x, 0,ls.edges.z, 0, maxW);
-            float newY = ofMap(segVerts[i].y, 0,ls.edges.w, 0, maxH);
+            float newX = ofMap(segVerts[j].x, 0,ls.edges.z, 0, maxW);
+            float newY = ofMap(segVerts[j].y, 0,ls.edges.z, 0, maxW);
+            
+            newMaxH = max(newMaxH, newY);
 //            segVerts[j] = ofPoint(newX, newY);
             ls.brokenLine[i][j] = ofPoint(newX, newY);
         }
     }
     
-    ls.edges = ofVec4f(0,0,maxW, maxH);
+    ls.edges = ofVec4f(0,0,maxW, newMaxH);
     ls.dims = ofVec2f(ls.contLine.getBoundingBox().width, ls.contLine.getBoundingBox().height);
     
     return ls;
@@ -191,6 +244,21 @@ void ofApp::update(){
     }
     
     eos = tcin.isEnd();
+    
+    if(started){
+        //check for msg;
+        if(eos){
+            waitCounter = 0;
+        } else{
+            waitCounter++;
+            if(waitCounter > 3000){
+                if(biasInc != NULL){
+                    cout<<"iiiii :"+ofToString(biasInc)+":-1"<<endl;
+                }
+                waitCounter = 0;
+            }
+        }
+    }
 }
 
 //--------------------------------------------------------------
@@ -219,30 +287,27 @@ void ofApp::draw(){
     
     //draw lines
     
-//        ofTranslate(ofGetWidth()/2 - dims.width/2, ofGetHeight()/2 - dims.height/2);
-//        for(int i = 0; i<polyLines.size(); i++){
-//            polyLines[i].draw();
-//        }
 
-//        for(int i = 0; i<linesets.size(); i++){
     
-            ofPushMatrix();
-            ofTranslate(w/2 - linesets[linesets.size()-1].dims.x/2, h/2 - linesets[linesets.size()-1].dims.y/2);
-            if(guiConnections->getEnabled()){
-                
-                linesets[linesets.size()-1].contLine.draw();
+    ofPushMatrix();
+//    ofTranslate(w/2 , h/2 );
+    
+    ofTranslate(w/2 - linesets[linesets.size()-1].dims.x/2, h/2 - linesets[linesets.size()-1].dims.y/2);
+    if(guiConnections->getEnabled()){
+        
+        linesets[linesets.size()-1].contLine.draw();
                 ofSetColor(0, 255, 0);
                 ofNoFill();
                 ofDrawRectangle(linesets[linesets.size()-1].contLine.getBoundingBox());
                 ofSetColor(255);
                 ofFill();
-            } else if(!guiConnections->getEnabled()){
-                for(int c = 0; c<linesets[linesets.size()-1].brokenLine.size(); c++){
-                    linesets[linesets.size()-1].brokenLine[c].draw();
-                }
-            }
-            ofPopMatrix();
-//        }
+    } else if(!guiConnections->getEnabled()){
+        for(int c = 0; c<linesets[linesets.size()-1].brokenLine.size(); c++){
+            linesets[linesets.size()-1].brokenLine[c].draw();
+        }
+    }
+    ofPopMatrix();
+
     
     
     
@@ -262,11 +327,24 @@ void ofApp::draw(){
                 string hand = ofToString((int)ofRandom(9999));
                 cout<<phrase+":"+bias+":"+hand<<endl;
             } else if(useGuiVals){
+//                float b = guiBias->getValue();
+//                b+=0.001;
+//                guiBias->setValue(b);
+                
                 if(guiPhrase->getText() == ""){
                     guiPhrase->setText(" ");
                 }
-                cout<<guiPhrase->getText()+":"+ofToString(guiBias->getValue())+":"+ofToString(guiId->getValue())<<endl;
-                biasInc += 0.005;
+                
+                if(biasInc != NULL ){ //super important or will seg fault
+                    cout<<"iiiii :"+ofToString(biasInc)+":-1"<<endl;
+                }
+                
+                if(biasInc < 0){
+                biasInc += 0.0000372;
+                } else{
+                    biasInc += 0.00009;
+                }
+//                guiBias->setValue(b);
             }
         }
     }
@@ -285,14 +363,24 @@ void ofApp::draw(){
         for(int i = 0; i<linesets.size(); i++){
             ofPushMatrix();
             ofTranslate(xSpace, ySpace);
+//            ofTranslate(w/2 - linesets[linesets.size()-1].edges.z/2, h/2 - linesets[linesets.size()-1].edges.w/2);
             
+            if(guiConnections->getEnabled()){
+                ofSetColor(0, 255, 0);
+                ofNoFill();
+                ofDrawRectangle(0,0,linesets[i].edges.z, linesets[i].edges.w);
+                ofSetColor(0);
+                ofFill();
+            }
+
             for(int j = 0; j<linesets[i].brokenLine.size(); j++){
                 linesets[i].brokenLine[j].draw();
             }
             
-            xSpace += linesets[i].dims.x;
+            xSpace += linesets[i].edges.z;
             if(xSpace > w){
-                ySpace += linesets[i].dims.y;
+//                ySpace += linesets[i].dims.y;
+                ySpace += guiMaxW->getValue() - (guiMaxW->getValue()*0.25);
                 xSpace = 0;
             }
             ofPopMatrix();
@@ -317,7 +405,7 @@ void ofApp::draw(){
 //                }
         
         ofSetColor(0);
-        ofDrawBitmapString(ofToString(biasInc), w/2,h/2);
+//        ofDrawBitmapString(ofToString(biasInc), w/2,h/2);
         
         ofSetColor(255);
         vvFbo.end();
@@ -340,6 +428,7 @@ void ofApp::keyPressed(int key){
     }
     
     if(key == 'a'){
+        started = true;
         cout<<guiPhrase->getText()+":0.1:0"<<endl;
     }
     
@@ -361,7 +450,7 @@ void ofApp::keyPressed(int key){
     }
     
     if(key == 'q'){
-        linesets[linesets.size()-1] = resizeLine(linesets[linesets.size()-1], guiMaxW->getValue(), guiMaxH->getValue());
+//        linesets[linesets.size()-1] = resizeLine(linesets[linesets.size()-1], guiMaxW->getValue(), guiMaxH->getValue());
     }
     
     
